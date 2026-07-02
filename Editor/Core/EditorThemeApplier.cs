@@ -3,6 +3,7 @@ using System.IO;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace EditorThemeKit
 {
@@ -28,6 +29,9 @@ namespace EditorThemeKit
         private const string LightUss = ExtFolder + "/light.uss";
 
         private static EditorThemeData _current;
+        private static Color _borderColor;
+        private static bool _hasBorder;
+        private static double _lastBorderScan;
 
         public static EditorThemeData Current => _current;
         public static event Action<EditorThemeData> ThemeChanged;
@@ -35,6 +39,7 @@ namespace EditorThemeKit
         static EditorThemeApplier()
         {
             EditorApplication.delayCall += InitialLoad;
+            EditorApplication.update += OnUpdate;
         }
 
         private static void InitialLoad()
@@ -77,6 +82,13 @@ namespace EditorThemeKit
 
             ImguiThemePass.Apply(theme);
 
+            // Draw a 1px border on every window's content root in the Border color. Unity 6
+            // has no themeable inter-window divider style, but each window's rootVisualElement
+            // paints — a border on each makes the lines between docked windows clearly visible.
+            _borderColor = theme.Get(ThemeColorKey.Border, new Color(0.15f, 0.15f, 0.15f, 1f));
+            _hasBorder = true;
+            PaintAllWindowBorders();
+
             if (persist)
                 ThemeStorage.Save(theme);
 
@@ -99,6 +111,9 @@ namespace EditorThemeKit
 
             ImguiThemePass.Revert();
 
+            _hasBorder = false;
+            ClearWindowBorders();
+
             _current = null;
             if (clearSaved)
                 ThemeStorage.Clear();
@@ -118,6 +133,55 @@ namespace EditorThemeKit
 
             // Offer (once per project) to git-ignore the generated folder.
             GitignoreHelper.MaybePromptOnce();
+        }
+
+        // Keeps window borders painted as windows open/change.
+        private static void OnUpdate()
+        {
+            if (!_hasBorder)
+                return;
+            var now = EditorApplication.timeSinceStartup;
+            if (now - _lastBorderScan < 0.4)
+                return;
+            _lastBorderScan = now;
+            PaintAllWindowBorders();
+        }
+
+        private static void PaintAllWindowBorders()
+        {
+            foreach (var w in Resources.FindObjectsOfTypeAll<EditorWindow>())
+                PaintWindowBorder(w);
+        }
+
+        private static void PaintWindowBorder(EditorWindow window)
+        {
+            if (window == null || !_hasBorder)
+                return;
+            var r = window.rootVisualElement;
+            if (r == null)
+                return;
+            var c = new StyleColor(_borderColor);
+            r.style.borderTopColor = c;
+            r.style.borderBottomColor = c;
+            r.style.borderLeftColor = c;
+            r.style.borderRightColor = c;
+            r.style.borderTopWidth = 1;
+            r.style.borderBottomWidth = 1;
+            r.style.borderLeftWidth = 1;
+            r.style.borderRightWidth = 1;
+        }
+
+        private static void ClearWindowBorders()
+        {
+            foreach (var w in Resources.FindObjectsOfTypeAll<EditorWindow>())
+            {
+                var r = w != null ? w.rootVisualElement : null;
+                if (r == null) continue;
+                r.style.borderTopWidth = 0;
+                r.style.borderBottomWidth = 0;
+                r.style.borderLeftWidth = 0;
+                r.style.borderRightWidth = 0;
+            }
         }
 
         // Switches Unity's editor skin (Pro/Personal) to match the theme's base skin, if it

@@ -3,6 +3,15 @@
 All notable changes to Editor Theme Kit are documented here.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.6.4] - 2026-07-03
+
+### Fixed
+- **Window dividers are now actually visible.** Unity 6 exposes no themeable inter-window
+  divider, so each window's content root gets a 1px border in the Border color — outlining
+  panels and making the lines between docked windows clear. The divider color is derived to
+  be a **darker groove** than the window (lightened only on near-black themes), and re-applies
+  to newly opened windows.
+
 ## [0.6.3] - 2026-07-02
 
 ### Added

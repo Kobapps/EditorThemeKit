@@ -82,12 +82,13 @@ namespace EditorThemeKit
             return Color.magenta;
         }
 
-        // A separator/divider color that stays visible against the window: lighter on dark
-        // themes, darker on light themes.
+        // A separator/divider color that stays visible against the window. Convention is a
+        // darker groove line, so darken the window — except on near-black themes where there's
+        // no room to go darker, so lighten a touch instead.
         private static Color Divider(Color w)
         {
             float lum = 0.2126f * w.r + 0.7152f * w.g + 0.0722f * w.b;
-            float a = lum < 0.5f ? 0.14f : -0.20f;
+            float a = lum < 0.10f ? 0.12f : -0.16f;
             return new Color(Mathf.Clamp01(w.r + a), Mathf.Clamp01(w.g + a), Mathf.Clamp01(w.b + a), 1f);
         }
 
