@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using UnityEditor;
 using UnityEditorInternal;
@@ -33,12 +34,39 @@ namespace EditorThemeKit
         private static Color _buttonColor = new Color(0.35f, 0.35f, 0.35f, 1f);
         private static Color _dropdownColor = new Color(0.35f, 0.35f, 0.35f, 1f);
         private static Color _headerColor = new Color(0.28f, 0.28f, 0.28f, 1f);
+        private static Color _tabColor = new Color(0.24f, 0.24f, 0.24f, 1f);
+        private static Color _tabSelColor = new Color(0.30f, 0.30f, 0.30f, 1f);
         private static Color _textColor = Color.white;
         private static bool _hasTheme;
+        private static bool _dockApplied;
+        private static double _lastDockScan;
 
         static ImguiThemePass()
         {
             Editor.finishedDefaultHeaderGUI += _ => EnsureAppliedFromOnGUI();
+            EditorApplication.update += OnUpdate;
+        }
+
+        // The dock header/tabs use shared static GUIStyles that persist once set, so we apply
+        // them from update (not OnGUI) — this reaches them even when no inspector is drawing.
+        // Retries until DockArea's styles are initialized, then stops until the next apply.
+        private static void OnUpdate()
+        {
+            if (!_hasTheme || _dockApplied)
+                return;
+            var now = EditorApplication.timeSinceStartup;
+            if (now - _lastDockScan < 0.3)
+                return;
+            _lastDockScan = now;
+            try
+            {
+                if (RetintDock())
+                {
+                    _dockApplied = true;
+                    SafeRepaint();
+                }
+            }
+            catch { /* styles not ready yet; retry next tick */ }
         }
 
         public static void Apply(EditorThemeData theme)
@@ -54,8 +82,11 @@ namespace EditorThemeKit
             _buttonColor = theme.Get(ThemeColorKey.ButtonBackground, new Color(0.35f, 0.35f, 0.35f, 1f));
             _dropdownColor = theme.Get(ThemeColorKey.InputBackground, _buttonColor);
             _headerColor = theme.Get(ThemeColorKey.HeaderBackground, Lighten(_buttonColor, 0.08f));
+            _tabColor = theme.Get(ThemeColorKey.TabBackground, theme.Get(ThemeColorKey.WindowBackground, _headerColor));
+            _tabSelColor = theme.Get(ThemeColorKey.TabBackgroundSelected, _headerColor);
             _textColor = theme.TryGet(ThemeColorKey.Text, out var t) ? t : ReadableText(_buttonColor);
             _hasTheme = true;
+            _dockApplied = false; // re-apply dock styles for the new colors
             SafeRepaint();
         }
 
@@ -63,6 +94,7 @@ namespace EditorThemeKit
         {
             RestoreSnapshots();
             _hasTheme = false;
+            _dockApplied = false;
             SafeRepaint();
         }
 
@@ -85,6 +117,74 @@ namespace EditorThemeKit
                 TintStyle(style, _buttonColor);
             foreach (var style in DropdownStyles())
                 TintStyle(style, _dropdownColor);
+        }
+
+        // The dock header bar and window tabs are painted by DockArea/HostView using their
+        // own shared, cached GUIStyles (USS name-bridging doesn't reach the header, nor give
+        // a distinct selected tab). Retint them directly: header/strip -> HeaderBackground,
+        // unselected tabs -> TabBackground, and the SELECTED tab (on* states) ->
+        // TabBackgroundSelected so it stands out. Returns false if the styles aren't
+        // initialized yet (so the caller retries).
+        private static bool RetintDock()
+        {
+            var dragTab = CachedStyle("UnityEditor.DockArea", "dragTab");
+            if (dragTab == null)
+                return false; // DockArea styles not built yet.
+
+            HeaderStyle(CachedStyle("UnityEditor.DockArea", "background"));
+            HeaderStyle(CachedStyle("UnityEditor.DockArea", "dockTitleBarStyle"));
+            HeaderStyle(CachedStyle("UnityEditor.HostView", "background"));
+            HeaderStyle(CachedStyle("UnityEditor.HostView", "tabWindowBackground"));
+
+            DockTab(dragTab);
+            DockTab(CachedStyle("UnityEditor.DockArea", "dragTabFirst"));
+            return true;
+        }
+
+        private static void HeaderStyle(GUIStyle style)
+        {
+            if (style == null) return;
+            ReplaceState(style.normal, _headerColor);
+            ReplaceState(style.onNormal, _headerColor);
+            ReplaceState(style.focused, _headerColor);
+            ReplaceState(style.active, _headerColor);
+        }
+
+        // Unselected tab states -> _tabColor; selected (on*) states -> _tabSelColor.
+        private static void DockTab(GUIStyle style)
+        {
+            if (style == null) return;
+            ReplaceState(style.normal, _tabColor);
+            ReplaceState(style.hover, Lighten(_tabColor, 0.06f));
+            ReplaceState(style.focused, _tabColor);
+            ReplaceState(style.active, _tabSelColor);
+            ReplaceState(style.onNormal, _tabSelColor);
+            ReplaceState(style.onHover, _tabSelColor);
+            ReplaceState(style.onActive, _tabSelColor);
+            ReplaceState(style.onFocused, _tabSelColor);
+        }
+
+        private static Type FindType(string full)
+        {
+            foreach (var a in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                var t = a.GetType(full);
+                if (t != null) return t;
+            }
+            return null;
+        }
+
+        private static GUIStyle CachedStyle(string typeName, string field)
+        {
+            try
+            {
+                var t = FindType(typeName);
+                var nested = t?.GetNestedType("Styles", BindingFlags.Public | BindingFlags.NonPublic);
+                var f = nested?.GetField(field,
+                    BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
+                return f?.GetValue(null) as GUIStyle;
+            }
+            catch { return null; }
         }
 
         // --- style collections -------------------------------------------------------

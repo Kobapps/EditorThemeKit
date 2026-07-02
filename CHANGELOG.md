@@ -3,6 +3,17 @@
 All notable changes to Editor Theme Kit are documented here.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.6.1] - 2026-07-02
+
+### Fixed
+- **Dock header bar now colors** and the **selected tab is a distinct shade**. The dock
+  header/tabs are painted by `DockArea`/`HostView` shared static `GUIStyle`s that the USS
+  name-bridge couldn't fully reach (no header, no selected state). The IMGUI pass now
+  retints them directly from `EditorApplication.update` (so it works even with no inspector
+  open): header/strip → Header color, unselected tabs → Tab color, selected tab (`on*`
+  states) → Tab (Selected) color. Removed the now-redundant `.dockHeader`/`.dragtab-label`
+  USS rules.
+
 ## [0.6.0] - 2026-07-02
 
 ### Changed

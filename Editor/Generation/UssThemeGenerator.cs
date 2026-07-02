@@ -33,17 +33,16 @@ namespace EditorThemeKit
             }),
             (ThemeColorKey.HeaderBackground, new[]
             {
-                "dockHeader", "TV LineBold", "IN Title",
+                // NOTE: the dock header bar + tabs are IMGUI (DockArea/HostView cached
+                // GUIStyles) and are handled by ImguiThemePass, not USS. Keep the inspector
+                // title + tree bold line here.
+                "TV LineBold", "IN Title",
             }),
             (ThemeColorKey.ToolbarBackground, new[]
             {
                 "ToolbarDropDownToogleRight", "ToolbarPopupLeft", "ToolbarPopup",
                 "toolbarbutton", "PreToolbar", "AppToolbar", "GameViewBackground",
                 "CN EntryInfoSmall", "Toolbar", "toolbarbuttonRight", "ProjectBrowserIconAreaBg",
-            }),
-            (ThemeColorKey.TabBackground, new[]
-            {
-                "dragtab-label",
             }),
             (ThemeColorKey.ButtonBackground, new[]
             {
