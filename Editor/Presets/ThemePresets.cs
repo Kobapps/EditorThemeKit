@@ -34,6 +34,16 @@ namespace EditorThemeKit
             new PresetInfo("solarized_dark", "Solarized Dark"),
             new PresetInfo("nord", "Nord"),
             new PresetInfo("gruvbox_dark", "Gruvbox Dark"),
+            new PresetInfo("one_dark", "One Dark"),
+            new PresetInfo("tokyo_night", "Tokyo Night"),
+            new PresetInfo("catppuccin_mocha", "Catppuccin Mocha"),
+            new PresetInfo("ayu_mirage", "Ayu Mirage"),
+            new PresetInfo("cobalt2", "Cobalt2"),
+            new PresetInfo("rose_pine", "Rosé Pine"),
+            new PresetInfo("night_owl", "Night Owl"),
+            new PresetInfo("oceanic_next", "Oceanic Next"),
+            new PresetInfo("solarized_light", "Solarized Light"),
+            new PresetInfo("github_light", "GitHub Light"),
             new PresetInfo("high_contrast", "High Contrast"),
         };
 
@@ -66,6 +76,16 @@ namespace EditorThemeKit
                 case "solarized_dark": return SolarizedDark();
                 case "nord": return Nord();
                 case "gruvbox_dark": return GruvboxDark();
+                case "one_dark": return OneDark();
+                case "tokyo_night": return TokyoNight();
+                case "catppuccin_mocha": return CatppuccinMocha();
+                case "ayu_mirage": return AyuMirage();
+                case "cobalt2": return Cobalt2();
+                case "rose_pine": return RosePine();
+                case "night_owl": return NightOwl();
+                case "oceanic_next": return OceanicNext();
+                case "solarized_light": return SolarizedLight();
+                case "github_light": return GitHubLight();
                 case "high_contrast": return HighContrast();
                 case "unity_dark":
                 default:
@@ -172,6 +192,78 @@ namespace EditorThemeKit
             tab: "1d2021", tabSel: "3c3836", input: "1d2021", button: "504945",
             border: "141617", text: "ebdbb2", textSel: "fbf1c7",
             accent: "fabd2f", scrollbar: "665c54");
+
+        private static EditorThemeData OneDark() => Build(
+            "one_dark", "One Dark",
+            window: "282c34", header: "21252b", toolbar: "21252b",
+            tab: "21252b", tabSel: "282c34", input: "21252b", button: "3b4148",
+            border: "181a1f", text: "abb2bf", textSel: "ffffff",
+            accent: "61afef", scrollbar: "4b5263");
+
+        private static EditorThemeData TokyoNight() => Build(
+            "tokyo_night", "Tokyo Night",
+            window: "1a1b26", header: "16161e", toolbar: "16161e",
+            tab: "16161e", tabSel: "1a1b26", input: "16161e", button: "292e42",
+            border: "101014", text: "a9b1d6", textSel: "c0caf5",
+            accent: "7aa2f7", scrollbar: "414868");
+
+        private static EditorThemeData CatppuccinMocha() => Build(
+            "catppuccin_mocha", "Catppuccin Mocha",
+            window: "1e1e2e", header: "181825", toolbar: "181825",
+            tab: "181825", tabSel: "1e1e2e", input: "181825", button: "313244",
+            border: "11111b", text: "cdd6f4", textSel: "ffffff",
+            accent: "cba6f7", scrollbar: "45475a");
+
+        private static EditorThemeData AyuMirage() => Build(
+            "ayu_mirage", "Ayu Mirage",
+            window: "1f2430", header: "191e2a", toolbar: "191e2a",
+            tab: "191e2a", tabSel: "1f2430", input: "191e2a", button: "2d3442",
+            border: "12151c", text: "cbccc6", textSel: "ffffff",
+            accent: "ffcc66", scrollbar: "444a58");
+
+        private static EditorThemeData Cobalt2() => Build(
+            "cobalt2", "Cobalt2",
+            window: "193549", header: "122738", toolbar: "122738",
+            tab: "122738", tabSel: "193549", input: "0d3a58", button: "1f4b6b",
+            border: "0a1a26", text: "ffffff", textSel: "ffffff",
+            accent: "ffc600", scrollbar: "234e6d");
+
+        private static EditorThemeData RosePine() => Build(
+            "rose_pine", "Rosé Pine",
+            window: "191724", header: "1f1d2e", toolbar: "1f1d2e",
+            tab: "1f1d2e", tabSel: "191724", input: "1f1d2e", button: "26233a",
+            border: "100f1a", text: "e0def4", textSel: "ffffff",
+            accent: "ebbcba", scrollbar: "403d52");
+
+        private static EditorThemeData NightOwl() => Build(
+            "night_owl", "Night Owl",
+            window: "011627", header: "010e1a", toolbar: "010e1a",
+            tab: "010e1a", tabSel: "011627", input: "010e1a", button: "0e2c48",
+            border: "00080f", text: "d6deeb", textSel: "ffffff",
+            accent: "82aaff", scrollbar: "1d3b53");
+
+        private static EditorThemeData OceanicNext() => Build(
+            "oceanic_next", "Oceanic Next",
+            window: "1b2b34", header: "16232a", toolbar: "16232a",
+            tab: "16232a", tabSel: "1b2b34", input: "16232a", button: "223c48",
+            border: "0f1a1f", text: "cdd3de", textSel: "ffffff",
+            accent: "6699cc", scrollbar: "33505d");
+
+        private static EditorThemeData SolarizedLight() => Build(
+            "solarized_light", "Solarized Light",
+            window: "fdf6e3", header: "eee8d5", toolbar: "eee8d5",
+            tab: "eee8d5", tabSel: "fdf6e3", input: "ffffff", button: "eee8d5",
+            border: "d5cfbb", text: "586e75", textSel: "073642",
+            accent: "268bd2", scrollbar: "93a1a1",
+            baseSkin: EditorThemeSkin.Light);
+
+        private static EditorThemeData GitHubLight() => Build(
+            "github_light", "GitHub Light",
+            window: "ffffff", header: "f0f2f4", toolbar: "f6f8fa",
+            tab: "f0f2f4", tabSel: "ffffff", input: "ffffff", button: "f6f8fa",
+            border: "d0d7de", text: "1f2328", textSel: "ffffff",
+            accent: "0969da", scrollbar: "d0d7de",
+            baseSkin: EditorThemeSkin.Light);
 
         private static EditorThemeData HighContrast() => Build(
             "high_contrast", "High Contrast",

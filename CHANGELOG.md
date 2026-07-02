@@ -3,6 +3,13 @@
 All notable changes to Editor Theme Kit are documented here.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.7.0] - 2026-07-03
+
+### Added
+- **10 new built-in themes**: One Dark, Tokyo Night, Catppuccin Mocha, Ayu Mirage, Cobalt2,
+  Rosé Pine, Night Owl, Oceanic Next (dark), plus Solarized Light and GitHub Light (light).
+  18 presets total.
+
 ## [0.6.7] - 2026-07-03
 
 ### Fixed
