@@ -3,6 +3,16 @@
 All notable changes to Editor Theme Kit are documented here.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.6.5] - 2026-07-03
+
+### Fixed
+- **No skin reload when switching between same-base-skin themes.** The editor skin is now
+  only switched when the new theme's base skin actually differs (dark→dark or light→light
+  leaves the skin untouched); the last-applied skin is tracked to avoid a spurious re-switch
+  during the (one-frame-deferred) skin transition.
+- Lighter reload on each theme switch — reimport just the two generated `.uss` files instead
+  of a full `AssetDatabase.Refresh()`.
+
 ## [0.6.4] - 2026-07-03
 
 ### Fixed

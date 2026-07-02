@@ -125,11 +125,24 @@ namespace EditorThemeKit
         // reimports. Unity re-merges editor extension stylesheets on import — no domain reload.
         private static void WriteExtensionUss(string uss)
         {
+            bool folderIsNew = !Directory.Exists(ToAbsolute(ExtFolder));
             Directory.CreateDirectory(ToAbsolute(ExtFolder));
             File.WriteAllText(ToAbsolute(DarkUss), uss);
             File.WriteAllText(ToAbsolute(LightUss), uss);
             WriteFolderReadme(ToAbsolute("Assets/EditorThemeKit.Generated"));
-            AssetDatabase.Refresh();
+
+            if (folderIsNew)
+            {
+                // First run: the folder isn't tracked yet — a full refresh registers it.
+                AssetDatabase.Refresh();
+            }
+            else
+            {
+                // Reimport only the two files so Unity re-merges the extension stylesheets
+                // without a full project refresh (lighter, less visible reload on each switch).
+                AssetDatabase.ImportAsset(DarkUss, ImportAssetOptions.ForceUpdate);
+                AssetDatabase.ImportAsset(LightUss, ImportAssetOptions.ForceUpdate);
+            }
 
             // Offer (once per project) to git-ignore the generated folder.
             GitignoreHelper.MaybePromptOnce();
@@ -184,15 +197,30 @@ namespace EditorThemeKit
             }
         }
 
-        // Switches Unity's editor skin (Pro/Personal) to match the theme's base skin, if it
-        // doesn't already. SwitchSkinAndRepaintAllViews toggles, so guard on the current skin.
+        private static EditorThemeSkin? _appliedSkin;
+
+        /// <summary>Diagnostic: number of times the editor skin was actually switched.</summary>
+        internal static int SkinSwitchCount { get; private set; }
+
+        // Only switches Unity's editor skin (Pro/Personal) when the theme's base skin actually
+        // differs from what's active. Switching between two same-skin themes (e.g. dark → dark)
+        // must NOT touch the skin. `isProSkin` updates a frame late after a switch, so also
+        // track the last-applied skin to avoid a spurious re-switch mid-transition.
         private static void EnsureBaseSkin(EditorThemeSkin skin)
         {
             try
             {
                 bool wantPro = skin != EditorThemeSkin.Light;
+
+                if (_appliedSkin == skin)
+                    return; // already applied this base skin — never re-switch
+
                 if (EditorGUIUtility.isProSkin != wantPro)
+                {
                     InternalEditorUtility.SwitchSkinAndRepaintAllViews();
+                    SkinSwitchCount++;
+                }
+                _appliedSkin = skin;
             }
             catch (Exception e)
             {
