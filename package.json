@@ -1,6 +1,6 @@
 {
   "name": "com.editorthemekit.core",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "displayName": "Editor Theme Kit",
   "description": "Customize the Unity Editor theme (colors of toolbars, windows, fields, tabs, selection) from Project Settings. Ships common presets, supports full custom themes, applies instantly without recompiling, and stores the active theme per-user in the UserSettings folder.",
   "unity": "6000.0",

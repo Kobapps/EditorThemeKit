@@ -115,6 +115,9 @@ namespace EditorThemeKit
             File.WriteAllText(ToAbsolute(LightUss), uss);
             WriteFolderReadme(ToAbsolute("Assets/EditorThemeKit.Generated"));
             AssetDatabase.Refresh();
+
+            // Offer (once per project) to git-ignore the generated folder.
+            GitignoreHelper.MaybePromptOnce();
         }
 
         // Switches Unity's editor skin (Pro/Personal) to match the theme's base skin, if it

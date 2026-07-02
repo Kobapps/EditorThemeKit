@@ -58,6 +58,13 @@ namespace EditorThemeKit
                 "ToolbarSearchTextField", ".unity-base-field__input",
                 ".unity-search-field__search-button", ".unity-search-field__cancel-button",
             }),
+            (ThemeColorKey.Border, new[]
+            {
+                // Window/pane split dividers (UITK). IMGUI dock/pane separators are handled
+                // in ImguiThemePass.
+                ".unity-two-pane-split-view__dragline-anchor",
+                ".unity-two-pane-split-view__dragline",
+            }),
             (ThemeColorKey.Accent, new[]
             {
                 // Selection highlight across hierarchy/project lists + UITK collections.

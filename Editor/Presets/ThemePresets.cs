@@ -82,6 +82,15 @@ namespace EditorThemeKit
             return Color.magenta;
         }
 
+        // A separator/divider color that stays visible against the window: lighter on dark
+        // themes, darker on light themes.
+        private static Color Divider(Color w)
+        {
+            float lum = 0.2126f * w.r + 0.7152f * w.g + 0.0722f * w.b;
+            float a = lum < 0.5f ? 0.14f : -0.20f;
+            return new Color(Mathf.Clamp01(w.r + a), Mathf.Clamp01(w.g + a), Mathf.Clamp01(w.b + a), 1f);
+        }
+
         private static EditorThemeData Build(
             string id, string name,
             string window, string header, string toolbar, string tab, string tabSel,
@@ -101,7 +110,10 @@ namespace EditorThemeKit
             t.Set(ThemeColorKey.TabBackgroundSelected, Hex(window));
             t.Set(ThemeColorKey.InputBackground, Hex(input));
             t.Set(ThemeColorKey.ButtonBackground, Hex(button));
-            t.Set(ThemeColorKey.Border, Hex(border));
+            // Derive a divider/separator color that visibly contrasts with the window on any
+            // theme (a too-dark border on a dark theme is invisible). Users can still override
+            // "Border / Separator" on custom themes.
+            t.Set(ThemeColorKey.Border, Divider(Hex(window)));
             t.Set(ThemeColorKey.Text, Hex(text));
             t.Set(ThemeColorKey.TextSelected, Hex(textSel));
             t.Set(ThemeColorKey.Accent, Hex(accent));

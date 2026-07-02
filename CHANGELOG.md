@@ -3,6 +3,17 @@
 All notable changes to Editor Theme Kit are documented here.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.6.3] - 2026-07-02
+
+### Added
+- **Optional .gitignore entry**: the first time a theme is applied in a git project, Editor
+  Theme Kit offers (once) to add `Assets/EditorThemeKit.Generated/` to `.gitignore`.
+
+### Fixed
+- **Window/pane dividers stay visible.** The Border/Separator color is now applied to split
+  draglines, and presets derive it to always contrast with the window background (lighter on
+  dark themes, darker on light) so it doesn't vanish on some themes.
+
 ## [0.6.2] - 2026-07-02
 
 ### Added

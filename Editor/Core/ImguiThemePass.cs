@@ -36,6 +36,7 @@ namespace EditorThemeKit
         private static Color _headerColor = new Color(0.28f, 0.28f, 0.28f, 1f);
         private static Color _tabColor = new Color(0.24f, 0.24f, 0.24f, 1f);
         private static Color _tabSelColor = new Color(0.30f, 0.30f, 0.30f, 1f);
+        private static Color _borderColor = new Color(0.15f, 0.15f, 0.15f, 1f);
         private static Color _textColor = Color.white;
         private static bool _hasTheme;
         private static bool _dockApplied;
@@ -84,6 +85,7 @@ namespace EditorThemeKit
             _headerColor = theme.Get(ThemeColorKey.HeaderBackground, Lighten(_buttonColor, 0.08f));
             _tabColor = theme.Get(ThemeColorKey.TabBackground, theme.Get(ThemeColorKey.WindowBackground, _headerColor));
             _tabSelColor = theme.Get(ThemeColorKey.TabBackgroundSelected, _headerColor);
+            _borderColor = theme.Get(ThemeColorKey.Border, Darken(_headerColor, 0.1f));
             _textColor = theme.TryGet(ThemeColorKey.Text, out var t) ? t : ReadableText(_buttonColor);
             _hasTheme = true;
             _dockApplied = false; // re-apply dock styles for the new colors
@@ -138,7 +140,24 @@ namespace EditorThemeKit
 
             DockTab(dragTab);
             DockTab(CachedStyle("UnityEditor.DockArea", "dragTabFirst"));
+
+            // Window / pane divider lines (IMGUI separators paint no background by default,
+            // so on themed backgrounds they vanish). Give them the Border color so they show.
+            var skin = EditorGUIUtility.GetBuiltinSkin(EditorSkin.Inspector);
+            if (skin != null)
+            {
+                SeparatorLine(skin.FindStyle("DefaultLineSeparator"));
+                SeparatorLine(skin.FindStyle("AnimLeftPaneSeparator"));
+                SeparatorLine(skin.FindStyle("dockareaStandalone"));
+            }
             return true;
+        }
+
+        private static void SeparatorLine(GUIStyle style)
+        {
+            if (style == null) return;
+            ReplaceState(style.normal, _borderColor);
+            ReplaceState(style.onNormal, _borderColor);
         }
 
         private static void HeaderStyle(GUIStyle style)
