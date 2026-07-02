@@ -3,6 +3,15 @@
 All notable changes to Editor Theme Kit are documented here.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.6.6] - 2026-07-03
+
+### Fixed
+- **Accent / selection color now works.** Selection highlighting in the hierarchy/project/
+  lists is driven by Unity's `--unity-colors-highlight-*` design tokens (the class-selector
+  bridge didn't reach the IMGUI tree selection). The generator now emits those tokens from
+  the Accent color via the editor stylesheet-extension merge, so editing Accent recolors
+  selection across the editor.
+
 ## [0.6.5] - 2026-07-03
 
 ### Fixed

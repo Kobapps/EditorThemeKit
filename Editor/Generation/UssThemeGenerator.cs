@@ -65,14 +65,9 @@ namespace EditorThemeKit
                 ".unity-two-pane-split-view__dragline-anchor",
                 ".unity-two-pane-split-view__dragline",
             }),
-            (ThemeColorKey.Accent, new[]
-            {
-                // Selection highlight across hierarchy/project lists + UITK collections.
-                "TV Selection", "OL SelectedRow", "OL SelectedRowNoFocus", "PR Insertion",
-                ".unity-collection-view__item--selected",
-                ".unity-list-view__item--selected",
-                ".unity-tree-view__item--selected",
-            }),
+            // NOTE: Accent/selection is NOT a class group — the list/tree selection is driven
+            // by Unity's `--unity-colors-highlight-*` design tokens, emitted as a :root block
+            // below (the class-selector bridge doesn't reach the IMGUI tree selection).
         };
 
         public static string Generate(EditorThemeData theme)
@@ -100,7 +95,35 @@ namespace EditorThemeKit
                 sb.Append(".unity-label { color: ").Append(Rgba(text)).Append("; }\n");
             }
 
+            // Selection / highlight — driven by Unity's design tokens (reaches the IMGUI
+            // tree/list selection via the editor stylesheet-extension merge).
+            if (theme.TryGet(ThemeColorKey.Accent, out var accent))
+            {
+                var selText = theme.Get(ThemeColorKey.TextSelected, Color.white);
+                sb.Append("\n:root {\n");
+                Token(sb, "highlight-background", accent);
+                Token(sb, "highlight-background-hover", accent);
+                Token(sb, "highlight-background-inactive", Desaturate(accent, 0.4f));
+                Token(sb, "highlight", accent);
+                Token(sb, "selection-background", accent);
+                Token(sb, "highlight-text", selText);
+                Token(sb, "highlight-text-inactive", selText);
+                Token(sb, "object_selector-highlight", accent);
+                sb.Append("}\n");
+            }
+
             return sb.ToString();
+        }
+
+        private static void Token(StringBuilder sb, string name, Color c)
+        {
+            sb.Append("\t--unity-colors-").Append(name).Append(": ").Append(Rgba(c)).Append(";\n");
+        }
+
+        private static Color Desaturate(Color c, float t)
+        {
+            float lum = 0.2126f * c.r + 0.7152f * c.g + 0.0722f * c.b;
+            return Color.Lerp(c, new Color(lum, lum, lum, c.a), Mathf.Clamp01(t));
         }
 
         private static void Block(StringBuilder sb, string selectorName, Color color)
