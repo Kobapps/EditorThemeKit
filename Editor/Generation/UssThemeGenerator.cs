@@ -100,19 +100,48 @@ namespace EditorThemeKit
             if (theme.TryGet(ThemeColorKey.Accent, out var accent))
             {
                 var selText = theme.Get(ThemeColorKey.TextSelected, Color.white);
+                // Keep the selected-item text readable: darken a bright accent (preserving its
+                // hue) when the selection text is light, or lighten a dark accent when it's dark.
+                var hlBg = ReadableHighlight(accent, selText);
                 sb.Append("\n:root {\n");
-                Token(sb, "highlight-background", accent);
-                Token(sb, "highlight-background-hover", accent);
-                Token(sb, "highlight-background-inactive", Desaturate(accent, 0.4f));
-                Token(sb, "highlight", accent);
-                Token(sb, "selection-background", accent);
+                Token(sb, "highlight-background", hlBg);
+                Token(sb, "highlight-background-hover", Lighten(hlBg, 0.06f));
+                Token(sb, "highlight-background-inactive", Desaturate(hlBg, 0.4f));
+                Token(sb, "highlight", hlBg);
+                Token(sb, "selection-background", hlBg);
                 Token(sb, "highlight-text", selText);
                 Token(sb, "highlight-text-inactive", selText);
-                Token(sb, "object_selector-highlight", accent);
+                Token(sb, "object_selector-highlight", hlBg);
                 sb.Append("}\n");
             }
 
             return sb.ToString();
+        }
+
+        private static float Lum(Color c) => 0.2126f * c.r + 0.7152f * c.g + 0.0722f * c.b;
+
+        // Adjusts the highlight background so the selection text contrasts with it. Light text
+        // → scale the accent down to a dark target luminance (keeps hue); dark text → blend
+        // toward white. Leaves the accent as-is when contrast is already sufficient.
+        private static Color ReadableHighlight(Color accent, Color text)
+        {
+            float bg = Lum(accent);
+            if (Lum(text) > 0.5f)
+            {
+                const float target = 0.38f;
+                if (bg > target)
+                {
+                    float s = target / Mathf.Max(bg, 0.001f);
+                    return new Color(accent.r * s, accent.g * s, accent.b * s, accent.a);
+                }
+            }
+            else
+            {
+                const float target = 0.62f;
+                if (bg < target)
+                    return Color.Lerp(accent, Color.white, (target - bg) / Mathf.Max(1f - bg, 0.001f));
+            }
+            return accent;
         }
 
         private static void Token(StringBuilder sb, string name, Color c)

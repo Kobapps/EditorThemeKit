@@ -3,6 +3,14 @@
 All notable changes to Editor Theme Kit are documented here.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.6.7] - 2026-07-03
+
+### Fixed
+- **Readable selected-item text.** The selection highlight now derives from the Accent color
+  with a contrast guarantee: a bright accent is darkened (keeping its hue) when the selection
+  text is light, so light text stays visible on dark themes; a dark accent is lightened when
+  the text is dark. Accent hue is preserved, just shaded for readability.
+
 ## [0.6.6] - 2026-07-03
 
 ### Fixed
