@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using UnityEditor;
+using UnityEditorInternal;
 using UnityEngine;
 
 namespace EditorThemeKit
@@ -60,6 +61,10 @@ namespace EditorThemeKit
 
             _current = theme;
 
+            // Match Unity's base skin to the theme so default (unstyled) text stays readable
+            // — a Light theme on the Dark skin renders light-on-light text, and vice versa.
+            EnsureBaseSkin(theme.baseSkin);
+
             try
             {
                 var uss = UssThemeGenerator.Generate(theme);
@@ -110,6 +115,22 @@ namespace EditorThemeKit
             File.WriteAllText(ToAbsolute(LightUss), uss);
             WriteFolderReadme(ToAbsolute("Assets/EditorThemeKit.Generated"));
             AssetDatabase.Refresh();
+        }
+
+        // Switches Unity's editor skin (Pro/Personal) to match the theme's base skin, if it
+        // doesn't already. SwitchSkinAndRepaintAllViews toggles, so guard on the current skin.
+        private static void EnsureBaseSkin(EditorThemeSkin skin)
+        {
+            try
+            {
+                bool wantPro = skin != EditorThemeSkin.Light;
+                if (EditorGUIUtility.isProSkin != wantPro)
+                    InternalEditorUtility.SwitchSkinAndRepaintAllViews();
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning($"[Editor Theme Kit] Could not switch base skin: {e.Message}");
+            }
         }
 
         private static void DeleteWithMeta(string absPath)

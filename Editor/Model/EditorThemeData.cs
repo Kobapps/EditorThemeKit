@@ -26,6 +26,17 @@ namespace EditorThemeKit
     }
 
     /// <summary>
+    /// Which of Unity's two built-in editor skins a theme builds on. Applying a Light theme
+    /// while Unity is on the Dark (Pro) skin leaves default text unreadable, so the applier
+    /// switches Unity's base skin to match this.
+    /// </summary>
+    public enum EditorThemeSkin
+    {
+        Dark,
+        Light,
+    }
+
+    /// <summary>
     /// A serializable editor theme: a name, an originating preset id, and a semantic
     /// color palette. Serialized with <see cref="JsonUtility"/> (Unity's
     /// <see cref="Color"/> round-trips natively), so no ScriptableObject asset is needed
@@ -51,6 +62,9 @@ namespace EditorThemeKit
 
         /// <summary>Id of the preset this theme is based on, or "custom".</summary>
         public string presetId = "custom";
+
+        /// <summary>Which Unity base skin this theme builds on (Dark/Light).</summary>
+        public EditorThemeSkin baseSkin = EditorThemeSkin.Dark;
 
         /// <summary>Whether the IMGUI accent pass (text/selection colors) is applied.</summary>
         public bool applyImguiPass = true;
@@ -114,6 +128,7 @@ namespace EditorThemeKit
             {
                 displayName = displayName,
                 presetId = presetId,
+                baseSkin = baseSkin,
                 applyImguiPass = applyImguiPass,
                 deepImgui = deepImgui,
                 entries = new List<Entry>(entries.Count),
@@ -131,7 +146,7 @@ namespace EditorThemeKit
             EnsureLookup();
             var sb = new System.Text.StringBuilder(64);
             sb.Append(presetId).Append('|').Append(applyImguiPass ? '1' : '0')
-              .Append(deepImgui ? '1' : '0');
+              .Append(deepImgui ? '1' : '0').Append((int)baseSkin);
             // Iterate the enum so ordering is deterministic regardless of entry order.
             foreach (ThemeColorKey key in Enum.GetValues(typeof(ThemeColorKey)))
             {

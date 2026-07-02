@@ -3,6 +3,19 @@
 All notable changes to Editor Theme Kit are documented here.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.6.2] - 2026-07-02
+
+### Added
+- **Light/Dark base skin per theme.** Each theme now declares a base skin; applying it
+  switches Unity's editor skin (Pro/Personal) to match, so default text stays readable —
+  this fixes light themes rendering light-on-light (invisible) text. Set it via the new
+  **Base skin** dropdown in Customize; every gallery card shows an **L/D** badge.
+
+### Fixed
+- **Selected tab now reads as a different color from the header.** Presets set the selected
+  tab to the window (content) color and unselected tabs to the header color — the
+  conventional Unity look, so the active tab stands out instead of blending into the strip.
+
 ## [0.6.1] - 2026-07-02
 
 ### Fixed

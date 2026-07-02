@@ -44,6 +44,7 @@ namespace EditorThemeKit
         private VisualElement _gallery;
         private Foldout _customize;
         private Toggle _imguiToggle;
+        private EnumField _skinField;
         private readonly Dictionary<ThemeColorKey, ColorField> _colorFields = new Dictionary<ThemeColorKey, ColorField>();
         private readonly List<(string id, VisualElement card)> _cards = new List<(string, VisualElement)>();
         private IVisualElementScheduledItem _debounce;
@@ -120,6 +121,19 @@ namespace EditorThemeKit
                 value = !ThemePresets.IsPreset(_working.presetId),
             };
             _customize.style.marginTop = 8;
+
+            _skinField = new EnumField("Base skin", _working.baseSkin);
+            _skinField.tooltip =
+                "Which Unity base skin the theme builds on. Choose Light for light themes so " +
+                "default text stays readable — applying switches Unity's skin to match.";
+            _skinField.RegisterValueChangedCallback(evt =>
+            {
+                _working.baseSkin = (EditorThemeSkin)evt.newValue;
+                MarkCustom();
+                ScheduleApply();
+            });
+            _customize.Add(_skinField);
+
             _colorFields.Clear();
             foreach (var row in ColorRows)
             {
@@ -243,6 +257,16 @@ namespace EditorThemeKit
             nameLabel.style.whiteSpace = WhiteSpace.NoWrap;
             row.Add(nameLabel);
 
+            // Light/Dark badge.
+            var badge = new Label(data.baseSkin == EditorThemeSkin.Light ? "L" : "D");
+            badge.tooltip = data.baseSkin == EditorThemeSkin.Light ? "Light base skin" : "Dark base skin";
+            badge.style.fontSize = 9;
+            badge.style.unityFontStyleAndWeight = FontStyle.Bold;
+            badge.style.opacity = 0.6f;
+            badge.style.marginLeft = 2;
+            badge.style.marginRight = 1;
+            row.Add(badge);
+
             if (isCustom)
             {
                 var del = new Button(() =>
@@ -311,13 +335,18 @@ namespace EditorThemeKit
         private void OnColorChanged(ThemeColorKey key, Color value)
         {
             _working.Set(key, value);
+            MarkCustom();
+            ScheduleApply();
+        }
+
+        private void MarkCustom()
+        {
             if (_working.presetId != ThemePresets.CustomId)
             {
                 _working.presetId = ThemePresets.CustomId;
                 _working.displayName = "Custom";
             }
             UpdateSelectionHighlight();
-            ScheduleApply();
         }
 
         private void ResetToPreset()
@@ -338,6 +367,8 @@ namespace EditorThemeKit
                     f.SetValueWithoutNotify(_working.Get(row.key, Color.gray));
             if (_imguiToggle != null)
                 _imguiToggle.SetValueWithoutNotify(_working.applyImguiPass);
+            if (_skinField != null)
+                _skinField.SetValueWithoutNotify(_working.baseSkin);
         }
 
         private void ScheduleApply()

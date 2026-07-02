@@ -86,14 +86,19 @@ namespace EditorThemeKit
             string id, string name,
             string window, string header, string toolbar, string tab, string tabSel,
             string input, string button, string border, string text, string textSel,
-            string accent, string scrollbar)
+            string accent, string scrollbar,
+            EditorThemeSkin baseSkin = EditorThemeSkin.Dark)
         {
-            var t = new EditorThemeData { presetId = id, displayName = name };
+            var t = new EditorThemeData { presetId = id, displayName = name, baseSkin = baseSkin };
             t.Set(ThemeColorKey.WindowBackground, Hex(window));
             t.Set(ThemeColorKey.HeaderBackground, Hex(header));
             t.Set(ThemeColorKey.ToolbarBackground, Hex(toolbar));
-            t.Set(ThemeColorKey.TabBackground, Hex(tab));
-            t.Set(ThemeColorKey.TabBackgroundSelected, Hex(tabSel));
+            // Good-looking default: the SELECTED tab matches the window (content) color so it
+            // stands out and "connects" to the body below; unselected tabs share the header /
+            // strip color. (The `tab`/`tabSel` args are kept for call-site readability but the
+            // relationship above is enforced here.)
+            t.Set(ThemeColorKey.TabBackground, Hex(header));
+            t.Set(ThemeColorKey.TabBackgroundSelected, Hex(window));
             t.Set(ThemeColorKey.InputBackground, Hex(input));
             t.Set(ThemeColorKey.ButtonBackground, Hex(button));
             t.Set(ThemeColorKey.Border, Hex(border));
@@ -114,10 +119,11 @@ namespace EditorThemeKit
 
         private static EditorThemeData UnityLight() => Build(
             "unity_light", "Unity Default (Light)",
-            window: "c8c8c8", header: "cbcbcb", toolbar: "cbcbcb",
+            window: "c8c8c8", header: "a5a5a5", toolbar: "cbcbcb",
             tab: "b8b8b8", tabSel: "cbcbcb", input: "f0f0f0", button: "e4e4e4",
             border: "939393", text: "090909", textSel: "060606",
-            accent: "3a72b0", scrollbar: "9a9a9a");
+            accent: "3a72b0", scrollbar: "9a9a9a",
+            baseSkin: EditorThemeSkin.Light);
 
         private static EditorThemeData Dracula() => Build(
             "dracula", "Dracula",
