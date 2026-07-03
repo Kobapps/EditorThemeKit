@@ -3,6 +3,14 @@
 All notable changes to Editor Theme Kit are documented here.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.7.6] - 2026-07-03
+
+### Fixed
+- **Project panel selection** now uses the theme's accent (matching the hierarchy). The
+  project browser paints selection with `ObjectListArea`'s own cached styles rather than the
+  tree highlight token, so the IMGUI pass retints those styles' selected states from the
+  Accent color (with readable text), reversibly.
+
 ## [0.7.5] - 2026-07-03
 
 ### Fixed

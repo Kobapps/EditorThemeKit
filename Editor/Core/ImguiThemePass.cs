@@ -37,6 +37,8 @@ namespace EditorThemeKit
         private static Color _tabColor = new Color(0.24f, 0.24f, 0.24f, 1f);
         private static Color _tabSelColor = new Color(0.30f, 0.30f, 0.30f, 1f);
         private static Color _borderColor = new Color(0.15f, 0.15f, 0.15f, 1f);
+        private static Color _selColor = new Color(0.24f, 0.37f, 0.53f, 1f);
+        private static Color _selTextColor = Color.white;
         private static Color _textColor = Color.white;
         private static bool _hasTheme;
         private static bool _dockApplied;
@@ -87,9 +89,35 @@ namespace EditorThemeKit
             _tabSelColor = theme.Get(ThemeColorKey.TabBackgroundSelected, _headerColor);
             _borderColor = theme.Get(ThemeColorKey.Border, Darken(_headerColor, 0.1f));
             _textColor = theme.TryGet(ThemeColorKey.Text, out var t) ? t : ReadableText(_buttonColor);
+            var accent = theme.Get(ThemeColorKey.Accent, new Color(0.30f, 0.50f, 0.70f, 1f));
+            _selTextColor = theme.Get(ThemeColorKey.TextSelected, Color.white);
+            _selColor = ReadableHighlight(accent, _selTextColor); // match the tree/list selection
             _hasTheme = true;
             _dockApplied = false; // re-apply dock styles for the new colors
             SafeRepaint();
+        }
+
+        // Same contrast rule as the USS highlight tokens, so IMGUI selection matches UITK.
+        private static Color ReadableHighlight(Color accent, Color text)
+        {
+            float bg = 0.2126f * accent.r + 0.7152f * accent.g + 0.0722f * accent.b;
+            float tl = 0.2126f * text.r + 0.7152f * text.g + 0.0722f * text.b;
+            if (tl > 0.5f)
+            {
+                const float target = 0.38f;
+                if (bg > target)
+                {
+                    float s = target / Mathf.Max(bg, 0.001f);
+                    return new Color(accent.r * s, accent.g * s, accent.b * s, accent.a);
+                }
+            }
+            else
+            {
+                const float target = 0.62f;
+                if (bg < target)
+                    return Color.Lerp(accent, Color.white, (target - bg) / Mathf.Max(1f - bg, 0.001f));
+            }
+            return accent;
         }
 
         public static void Revert()
@@ -150,7 +178,31 @@ namespace EditorThemeKit
                 SeparatorLine(skin.FindStyle("AnimLeftPaneSeparator"));
                 SeparatorLine(skin.FindStyle("dockareaStandalone"));
             }
+
+            // Project-browser selection uses ObjectListArea's own cached styles (not the tree
+            // highlight token), so recolor their selected states to match.
+            SelectionStyle(CachedStyle("UnityEditor.ObjectListArea", "resultsLabel"));
+            SelectionStyle(CachedStyle("UnityEditor.ObjectListArea", "resultsGridLabel"));
+            SelectionStyle(CachedStyle("UnityEditor.ObjectListArea", "resultsGrid"));
             return true;
+        }
+
+        private static void SelectionStyle(GUIStyle style)
+        {
+            if (style == null) return;
+            SelState(style.onNormal);
+            SelState(style.onActive);
+            SelState(style.onFocused);
+            SelState(style.onHover);
+        }
+
+        private static void SelState(GUIStyleState st)
+        {
+            if (st == null) return;
+            if (!Snapshots.ContainsKey(st))
+                Snapshots.Add(st, new Snapshot(st.background, st.textColor));
+            st.background = FlatTexture(_selColor);
+            st.textColor = _selTextColor;
         }
 
         private static void SeparatorLine(GUIStyle style)
