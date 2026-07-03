@@ -3,6 +3,14 @@
 All notable changes to Editor Theme Kit are documented here.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.7.1] - 2026-07-03
+
+### Changed
+- **Gallery grouped into Dark / Light sections**, each with a header, so themes are easier
+  to browse.
+- **Sun / moon type icons** replace the L/D badge — a sun (☀) for light themes and a moon
+  (☾) for dark, color-tinted, on section headers and each card.
+
 ## [0.7.0] - 2026-07-03
 
 ### Added

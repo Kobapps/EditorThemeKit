@@ -96,8 +96,7 @@ namespace EditorThemeKit
             root.Add(themesHeader);
 
             _gallery = new VisualElement();
-            _gallery.style.flexDirection = FlexDirection.Row;
-            _gallery.style.flexWrap = Wrap.Wrap;
+            _gallery.style.flexDirection = FlexDirection.Column;
             root.Add(_gallery);
             BuildGallery();
 
@@ -204,20 +203,66 @@ namespace EditorThemeKit
             _gallery.Clear();
             _cards.Clear();
 
+            var items = new List<(string id, string disp, EditorThemeData data, bool custom)>();
             foreach (var p in ThemePresets.All)
-                AddCard(p.Id, p.DisplayName, ThemePresets.Create(p.Id), isCustom: false);
-
+                items.Add((p.Id, p.DisplayName, ThemePresets.Create(p.Id), false));
             foreach (var name in ThemeStorage.ListCustomThemes())
             {
                 var data = ThemeStorage.LoadCustomTheme(name);
                 if (data != null)
-                    AddCard("custom:" + name, name, data, isCustom: true);
+                    items.Add(("custom:" + name, name, data, true));
             }
+
+            AddSection("Dark", EditorThemeSkin.Dark, items);
+            AddSection("Light", EditorThemeSkin.Light, items);
 
             UpdateSelectionHighlight();
         }
 
-        private void AddCard(string id, string display, EditorThemeData data, bool isCustom)
+        private void AddSection(string title, EditorThemeSkin skin,
+            List<(string id, string disp, EditorThemeData data, bool custom)> items)
+        {
+            var group = new List<(string id, string disp, EditorThemeData data, bool custom)>();
+            foreach (var it in items)
+                if (it.data.baseSkin == skin)
+                    group.Add(it);
+            if (group.Count == 0)
+                return;
+
+            var header = new VisualElement();
+            header.style.flexDirection = FlexDirection.Row;
+            header.style.alignItems = Align.Center;
+            header.style.marginTop = 6;
+            header.style.marginBottom = 3;
+            header.Add(MakeSkinIcon(skin == EditorThemeSkin.Light, 14));
+            var hl = new Label(" " + title + " themes");
+            hl.style.unityFontStyleAndWeight = FontStyle.Bold;
+            hl.style.opacity = 0.85f;
+            header.Add(hl);
+            _gallery.Add(header);
+
+            var row = new VisualElement();
+            row.style.flexDirection = FlexDirection.Row;
+            row.style.flexWrap = Wrap.Wrap;
+            _gallery.Add(row);
+
+            foreach (var it in group)
+                AddCard(row, it.id, it.disp, it.data, it.custom);
+        }
+
+        // Sun (light) / moon (dark) glyph, color-tinted so it reads even if the glyph font
+        // lacks the symbol.
+        private static Label MakeSkinIcon(bool light, int fontSize)
+        {
+            var icon = new Label(light ? "☀" : "☾"); // ☀ / ☾
+            icon.tooltip = light ? "Light theme" : "Dark theme";
+            icon.style.fontSize = fontSize;
+            icon.style.unityFontStyleAndWeight = FontStyle.Bold;
+            icon.style.color = light ? new Color(0.96f, 0.76f, 0.24f) : new Color(0.72f, 0.80f, 0.98f);
+            return icon;
+        }
+
+        private void AddCard(VisualElement parent, string id, string display, EditorThemeData data, bool isCustom)
         {
             var card = new VisualElement();
             card.style.width = 104;
@@ -257,12 +302,8 @@ namespace EditorThemeKit
             nameLabel.style.whiteSpace = WhiteSpace.NoWrap;
             row.Add(nameLabel);
 
-            // Light/Dark badge.
-            var badge = new Label(data.baseSkin == EditorThemeSkin.Light ? "L" : "D");
-            badge.tooltip = data.baseSkin == EditorThemeSkin.Light ? "Light base skin" : "Dark base skin";
-            badge.style.fontSize = 9;
-            badge.style.unityFontStyleAndWeight = FontStyle.Bold;
-            badge.style.opacity = 0.6f;
+            // Sun / moon type icon.
+            var badge = MakeSkinIcon(data.baseSkin == EditorThemeSkin.Light, 11);
             badge.style.marginLeft = 2;
             badge.style.marginRight = 1;
             row.Add(badge);
@@ -290,7 +331,7 @@ namespace EditorThemeKit
             var captured = data;
             card.RegisterCallback<ClickEvent>(_ => SelectTheme(captured));
 
-            _gallery.Add(card);
+            parent.Add(card);
             _cards.Add((id, card));
         }
 
