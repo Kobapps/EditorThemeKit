@@ -3,6 +3,14 @@
 All notable changes to Editor Theme Kit are documented here.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.7.2] - 2026-07-03
+
+### Fixed
+- **Settings layout no longer overlaps** when the Customize foldout is expanded. The gallery's
+  Dark/Light section rows were collapsing (flex-shrink) and under-reporting their height; they
+  and all panel sections are now pinned to their natural height so content flows/scrolls
+  correctly.
+
 ## [0.7.1] - 2026-07-03
 
 ### Changed

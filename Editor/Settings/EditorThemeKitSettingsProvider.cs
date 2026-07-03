@@ -194,6 +194,11 @@ namespace EditorThemeKit
             pathNote.style.marginTop = 8;
             pathNote.style.fontSize = 11;
             root.Add(pathNote);
+
+            // Keep every section at its natural height so nothing collapses/overlaps when the
+            // Customize foldout expands (Project Settings scrolls the overflow).
+            foreach (var child in root.Children())
+                child.style.flexShrink = 0;
         }
 
         // ---- gallery ---------------------------------------------------------------
@@ -234,6 +239,7 @@ namespace EditorThemeKit
             header.style.alignItems = Align.Center;
             header.style.marginTop = 6;
             header.style.marginBottom = 3;
+            header.style.flexShrink = 0;
             header.Add(MakeSkinIcon(skin == EditorThemeSkin.Light, 14));
             var hl = new Label(" " + title + " themes");
             hl.style.unityFontStyleAndWeight = FontStyle.Bold;
@@ -244,6 +250,7 @@ namespace EditorThemeKit
             var row = new VisualElement();
             row.style.flexDirection = FlexDirection.Row;
             row.style.flexWrap = Wrap.Wrap;
+            row.style.flexShrink = 0; // don't collapse — keeps wrapped height so siblings don't overlap
             _gallery.Add(row);
 
             foreach (var it in group)
