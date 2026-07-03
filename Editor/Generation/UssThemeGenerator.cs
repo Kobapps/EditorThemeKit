@@ -34,9 +34,9 @@ namespace EditorThemeKit
             (ThemeColorKey.HeaderBackground, new[]
             {
                 // NOTE: the dock header bar + tabs are IMGUI (DockArea/HostView cached
-                // GUIStyles) and are handled by ImguiThemePass, not USS. Keep the inspector
-                // title + tree bold line here.
-                "TV LineBold", "IN Title",
+                // GUIStyles) and are handled by ImguiThemePass, not USS. The inspector top/
+                // bottom bars (IN Title/IN BigTitle) get a darker "gutter" shade below.
+                "TV LineBold",
             }),
             (ThemeColorKey.ToolbarBackground, new[]
             {
@@ -114,6 +114,9 @@ namespace EditorThemeKit
             bool dark = Lum(window) < 0.5f;
             float rowShift = dark ? 0.028f : -0.028f;
             var hlBg = ReadableHighlight(accent, selText);
+            // A subtle "gutter" shade (a touch darker than the window) used for the inspector
+            // top/bottom bars and the hierarchy visibility column.
+            var gutter = Lighten(window, dark ? -0.03f : 0.03f);
 
             sb.Append("\n:root {\n");
             // Window / view backgrounds.
@@ -125,8 +128,8 @@ namespace EditorThemeKit
             // App toolbar / inspector title bars (top/bottom bars of the inspector, etc.).
             Token(sb, "app_toolbar-background", header);
             Token(sb, "toolbar-background", toolbar);
-            Token(sb, "inspector_titlebar-background", header);
-            Token(sb, "inspector_titlebar-background-hover", Lighten(header, dark ? 0.05f : -0.05f));
+            Token(sb, "inspector_titlebar-background", gutter);
+            Token(sb, "inspector_titlebar-background-hover", Lighten(gutter, dark ? 0.05f : -0.05f));
             Token(sb, "inspector_titlebar-border", border);
             Token(sb, "inspector_titlebar-border_accent", border);
             // Fields / buttons / dropdowns.
@@ -164,6 +167,12 @@ namespace EditorThemeKit
             Token(sb, "highlight-text-inactive", selText);
             Token(sb, "object_selector-highlight", hlBg);
             sb.Append("}\n");
+
+            // Inspector top/bottom bars (asset header + labels/footer) — darker gutter shade.
+            Block(sb, "IN Title", gutter);
+            Block(sb, "IN BigTitle", gutter);
+            Block(sb, "IN BigTitle Inner", gutter);
+            Block(sb, "IN BigTitle Post", gutter);
 
             return sb.ToString();
         }

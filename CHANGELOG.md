@@ -3,6 +3,12 @@
 All notable changes to Editor Theme Kit are documented here.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.7.10] - 2026-07-03
+
+### Changed
+- **Inspector top/bottom bars** now use the same darker "gutter" shade as the hierarchy
+  visibility column (a touch darker than the window), for a consistent look.
+
 ## [0.7.9] - 2026-07-03
 
 ### Changed
