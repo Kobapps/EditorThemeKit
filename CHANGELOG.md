@@ -3,6 +3,14 @@
 All notable changes to Editor Theme Kit are documented here.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.7.5] - 2026-07-03
+
+### Fixed
+- **More editor surfaces themed** via a comprehensive `--unity-colors-*` design-token block
+  (merged through the stylesheet extension): inspector title bars (top/bottom of the
+  inspector), alternated list rows, borders, fields, buttons, tabs and text now follow the
+  theme, in addition to the explicit chrome rules.
+
 ## [0.7.4] - 2026-07-03
 
 ### Changed

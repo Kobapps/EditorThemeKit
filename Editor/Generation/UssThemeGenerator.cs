@@ -89,31 +89,81 @@ namespace EditorThemeKit
             }
 
             // Text color on labels / text elements.
-            if (theme.TryGet(ThemeColorKey.Text, out var text))
+            if (theme.TryGet(ThemeColorKey.Text, out var textLabel))
             {
-                sb.Append("\n.unity-text-element { color: ").Append(Rgba(text)).Append("; }\n");
-                sb.Append(".unity-label { color: ").Append(Rgba(text)).Append("; }\n");
+                sb.Append("\n.unity-text-element { color: ").Append(Rgba(textLabel)).Append("; }\n");
+                sb.Append(".unity-label { color: ").Append(Rgba(textLabel)).Append("; }\n");
             }
 
-            // Selection / highlight — driven by Unity's design tokens (reaches the IMGUI
-            // tree/list selection via the editor stylesheet-extension merge).
-            if (theme.TryGet(ThemeColorKey.Accent, out var accent))
-            {
-                var selText = theme.Get(ThemeColorKey.TextSelected, Color.white);
-                // Keep the selected-item text readable: darken a bright accent (preserving its
-                // hue) when the selection text is light, or lighten a dark accent when it's dark.
-                var hlBg = ReadableHighlight(accent, selText);
-                sb.Append("\n:root {\n");
-                Token(sb, "highlight-background", hlBg);
-                Token(sb, "highlight-background-hover", Lighten(hlBg, 0.06f));
-                Token(sb, "highlight-background-inactive", Desaturate(hlBg, 0.4f));
-                Token(sb, "highlight", hlBg);
-                Token(sb, "selection-background", hlBg);
-                Token(sb, "highlight-text", selText);
-                Token(sb, "highlight-text-inactive", selText);
-                Token(sb, "object_selector-highlight", hlBg);
-                sb.Append("}\n");
-            }
+            // Design-token block. Unity's `--unity-colors-*` tokens are merged into the editor
+            // theme via the stylesheet-extension mechanism and drive many UITK-token areas that
+            // the explicit class rules above don't reach: inspector title bars, alternated rows,
+            // borders, and (crucially) the list/tree SELECTION highlight.
+            var window = theme.Get(ThemeColorKey.WindowBackground, new Color32(0x38, 0x38, 0x38, 0xFF));
+            var header = theme.Get(ThemeColorKey.HeaderBackground, window);
+            var toolbar = theme.Get(ThemeColorKey.ToolbarBackground, header);
+            var input = theme.Get(ThemeColorKey.InputBackground, window);
+            var button = theme.Get(ThemeColorKey.ButtonBackground, window);
+            var border = theme.Get(ThemeColorKey.Border, Darken(window, 0.1f));
+            var tab = theme.Get(ThemeColorKey.TabBackground, header);
+            var tabSel = theme.Get(ThemeColorKey.TabBackgroundSelected, window);
+            var scrollbar = theme.Get(ThemeColorKey.ScrollbarThumb, Lighten(window, 0.2f));
+            var accent = theme.Get(ThemeColorKey.Accent, new Color32(0x3a, 0x72, 0xb0, 0xFF));
+            var selText = theme.Get(ThemeColorKey.TextSelected, Color.white);
+            var text = theme.Get(ThemeColorKey.Text, Color.white);
+            bool dark = Lum(window) < 0.5f;
+            float rowShift = dark ? 0.028f : -0.028f;
+            var hlBg = ReadableHighlight(accent, selText);
+
+            sb.Append("\n:root {\n");
+            // Window / view backgrounds.
+            Token(sb, "window-background", window);
+            Token(sb, "default-background", window);
+            Token(sb, "preview-background", window);
+            Token(sb, "alternated_rows-background", Lighten(window, rowShift));
+            Token(sb, "helpbox-background", Lighten(window, -rowShift));
+            // App toolbar / inspector title bars (top/bottom bars of the inspector, etc.).
+            Token(sb, "app_toolbar-background", header);
+            Token(sb, "toolbar-background", toolbar);
+            Token(sb, "inspector_titlebar-background", header);
+            Token(sb, "inspector_titlebar-background-hover", Lighten(header, dark ? 0.05f : -0.05f));
+            Token(sb, "inspector_titlebar-border", border);
+            Token(sb, "inspector_titlebar-border_accent", border);
+            // Fields / buttons / dropdowns.
+            Token(sb, "input_field-background", input);
+            Token(sb, "object_field-background", input);
+            Token(sb, "slider_groove-background", input);
+            Token(sb, "button-background", button);
+            Token(sb, "button-background-hover", Lighten(button, dark ? 0.06f : -0.06f));
+            Token(sb, "button-background-pressed", Lighten(button, dark ? -0.06f : 0.06f));
+            Token(sb, "dropdown-background", input);
+            // Tabs.
+            Token(sb, "tab-background", tab);
+            Token(sb, "tab-background-checked", tabSel);
+            Token(sb, "tab-background-selected", tabSel);
+            // Borders / separators.
+            Token(sb, "default-border", border);
+            Token(sb, "window-border", border);
+            Token(sb, "toolbar-border", border);
+            Token(sb, "input_field-border", border);
+            // Text.
+            Token(sb, "default-text", text);
+            Token(sb, "label-text", text);
+            Token(sb, "window-text", text);
+            Token(sb, "button-text", text);
+            // Scrollbars.
+            Token(sb, "scrollbar_thumb-background", scrollbar);
+            Token(sb, "scrollbar_groove-background", Lighten(window, -rowShift));
+            // Selection / highlight (accent) — kept readable against the selection text.
+            Token(sb, "highlight-background", hlBg);
+            Token(sb, "highlight-background-hover", Lighten(hlBg, 0.06f));
+            Token(sb, "highlight-background-inactive", Desaturate(hlBg, 0.4f));
+            Token(sb, "highlight", hlBg);
+            Token(sb, "selection-background", hlBg);
+            Token(sb, "highlight-text", selText);
+            Token(sb, "highlight-text-inactive", selText);
+            Token(sb, "object_selector-highlight", hlBg);
+            sb.Append("}\n");
 
             return sb.ToString();
         }
