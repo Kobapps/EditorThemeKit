@@ -39,7 +39,13 @@ namespace EditorThemeKit
         private static Color _borderColor = new Color(0.15f, 0.15f, 0.15f, 1f);
         private static Color _selColor = new Color(0.24f, 0.37f, 0.53f, 1f);
         private static Color _selTextColor = Color.white;
+        private static Color _windowColor = new Color(0.22f, 0.22f, 0.22f, 1f);
         private static Color _textColor = Color.white;
+
+        // Originals of static Color fields we overwrite (e.g. the hierarchy visibility column),
+        // restored on revert.
+        private static readonly List<(FieldInfo field, Color original)> ColorFieldSnaps
+            = new List<(FieldInfo, Color)>();
         private static bool _hasTheme;
         private static bool _dockApplied;
         private static double _lastDockScan;
@@ -92,6 +98,7 @@ namespace EditorThemeKit
             var accent = theme.Get(ThemeColorKey.Accent, new Color(0.30f, 0.50f, 0.70f, 1f));
             _selTextColor = theme.Get(ThemeColorKey.TextSelected, Color.white);
             _selColor = ReadableHighlight(accent, _selTextColor); // match the tree/list selection
+            _windowColor = theme.Get(ThemeColorKey.WindowBackground, new Color(0.22f, 0.22f, 0.22f, 1f));
             _hasTheme = true;
             _dockApplied = false; // re-apply dock styles for the new colors
             SafeRepaint();
@@ -184,7 +191,39 @@ namespace EditorThemeKit
             SelectionStyle(CachedStyle("UnityEditor.ObjectListArea", "resultsLabel"));
             SelectionStyle(CachedStyle("UnityEditor.ObjectListArea", "resultsGridLabel"));
             SelectionStyle(CachedStyle("UnityEditor.ObjectListArea", "resultsGrid"));
+
+            // Hierarchy scene-visibility column (the left strip) is painted from static Color
+            // fields, not styles.
+            const string vis = "UnityEditor.SceneVisibilityHierarchyGUI";
+            SetColorField(vis, "backgroundColor", _windowColor);
+            SetColorField(vis, "hoveredBackgroundColor", Lighten(_windowColor, 0.06f));
+            SetColorField(vis, "selectedBackgroundColor", _selColor);
+            SetColorField(vis, "selectedNoFocusBackgroundColor", Desaturate(_selColor, 0.35f));
             return true;
+        }
+
+        private static Color Desaturate(Color c, float t)
+        {
+            float lum = 0.2126f * c.r + 0.7152f * c.g + 0.0722f * c.b;
+            return Color.Lerp(c, new Color(lum, lum, lum, c.a), Mathf.Clamp01(t));
+        }
+
+        // Overwrites a static Color field on a type's nested Styles class (snapshotting the
+        // original for revert).
+        private static void SetColorField(string typeName, string field, Color color)
+        {
+            try
+            {
+                var t = FindType(typeName);
+                var nested = t?.GetNestedType("Styles", BindingFlags.Public | BindingFlags.NonPublic);
+                var f = nested?.GetField(field,
+                    BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
+                if (f == null || f.FieldType != typeof(Color))
+                    return;
+                ColorFieldSnaps.Add((f, (Color)f.GetValue(null)));
+                f.SetValue(null, color);
+            }
+            catch { /* best-effort */ }
         }
 
         private static void SelectionStyle(GUIStyle style)
@@ -485,6 +524,13 @@ namespace EditorThemeKit
                 if (tex != null) UnityEngine.Object.DestroyImmediate(tex);
             CreatedTextures.Clear();
             TintedTextures.Clear();
+
+            foreach (var snap in ColorFieldSnaps)
+            {
+                try { snap.field.SetValue(null, snap.original); }
+                catch { /* best-effort */ }
+            }
+            ColorFieldSnaps.Clear();
         }
 
         private static Color Lighten(Color c, float a) =>

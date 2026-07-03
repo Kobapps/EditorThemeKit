@@ -3,6 +3,13 @@
 All notable changes to Editor Theme Kit are documented here.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.7.7] - 2026-07-03
+
+### Fixed
+- **Hierarchy left strip (scene-visibility column) now themed.** It's painted from static
+  `Color` fields on `SceneVisibilityHierarchyGUI` (background/hover/selected), which the IMGUI
+  pass now sets from the Window and Accent colors, reversibly.
+
 ## [0.7.6] - 2026-07-03
 
 ### Fixed
