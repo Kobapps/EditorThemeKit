@@ -3,6 +3,12 @@
 All notable changes to Editor Theme Kit are documented here.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.7.3] - 2026-07-03
+
+### Fixed
+- **Settings page now scrolls.** With 18 themes plus the color pickers the content can exceed
+  the panel; the whole page is wrapped in a ScrollView so it scrolls instead of clipping.
+
 ## [0.7.2] - 2026-07-03
 
 ### Fixed

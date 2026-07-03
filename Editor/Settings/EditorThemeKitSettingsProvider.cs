@@ -195,10 +195,19 @@ namespace EditorThemeKit
             pathNote.style.fontSize = 11;
             root.Add(pathNote);
 
-            // Keep every section at its natural height so nothing collapses/overlaps when the
-            // Customize foldout expands (Project Settings scrolls the overflow).
-            foreach (var child in root.Children())
+            // Move everything into a ScrollView so a tall gallery + color list scrolls instead
+            // of overflowing the settings panel (Project Settings doesn't auto-scroll UITK
+            // content). Pin each block to its natural height so nothing collapses/overlaps.
+            var scroll = new ScrollView(ScrollViewMode.Vertical);
+            scroll.style.flexGrow = 1;
+            foreach (var child in new List<VisualElement>(root.Children()))
+            {
+                root.Remove(child);
                 child.style.flexShrink = 0;
+                scroll.Add(child);
+            }
+            root.style.flexGrow = 1;
+            root.Add(scroll);
         }
 
         // ---- gallery ---------------------------------------------------------------
