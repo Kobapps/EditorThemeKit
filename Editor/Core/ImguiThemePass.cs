@@ -195,10 +195,8 @@ namespace EditorThemeKit
             // Hierarchy scene-visibility column (the left strip) is painted from static Color
             // fields, not styles.
             const string vis = "UnityEditor.SceneVisibilityHierarchyGUI";
-            // Sit between the alternating hierarchy rows (row bg + a half-shift) so the column
-            // blends with them instead of matching only the even rows.
-            float wLum = 0.2126f * _windowColor.r + 0.7152f * _windowColor.g + 0.0722f * _windowColor.b;
-            var colBg = Lighten(_windowColor, wLum < 0.5f ? 0.014f : -0.014f);
+            // Slightly darker than the window so the column reads as a subtle gutter.
+            var colBg = Darken(_windowColor, 0.03f);
             SetColorField(vis, "backgroundColor", colBg);
             SetColorField(vis, "hoveredBackgroundColor", Lighten(colBg, 0.06f));
             SetColorField(vis, "selectedBackgroundColor", _selColor);

@@ -3,6 +3,12 @@
 All notable changes to Editor Theme Kit are documented here.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.7.9] - 2026-07-03
+
+### Changed
+- Hierarchy visibility column (left strip) shade tuned to a subtle gutter slightly darker
+  than the window background.
+
 ## [0.7.7] - 2026-07-03
 
 ### Fixed
