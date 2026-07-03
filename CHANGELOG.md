@@ -3,6 +3,12 @@
 All notable changes to Editor Theme Kit are documented here.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.7.4] - 2026-07-03
+
+### Changed
+- **Custom themes now appear at the top** of the gallery in a "Your themes" section (★),
+  above the Dark and Light preset sections, for quick access.
+
 ## [0.7.3] - 2026-07-03
 
 ### Fixed

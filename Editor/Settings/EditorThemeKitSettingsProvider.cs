@@ -217,29 +217,42 @@ namespace EditorThemeKit
             _gallery.Clear();
             _cards.Clear();
 
-            var items = new List<(string id, string disp, EditorThemeData data, bool custom)>();
+            var presets = new List<(string id, string disp, EditorThemeData data, bool custom)>();
             foreach (var p in ThemePresets.All)
-                items.Add((p.Id, p.DisplayName, ThemePresets.Create(p.Id), false));
+                presets.Add((p.Id, p.DisplayName, ThemePresets.Create(p.Id), false));
+
+            var customs = new List<(string id, string disp, EditorThemeData data, bool custom)>();
             foreach (var name in ThemeStorage.ListCustomThemes())
             {
                 var data = ThemeStorage.LoadCustomTheme(name);
                 if (data != null)
-                    items.Add(("custom:" + name, name, data, true));
+                    customs.Add(("custom:" + name, name, data, true));
             }
 
-            AddSection("Dark", EditorThemeSkin.Dark, items);
-            AddSection("Light", EditorThemeSkin.Light, items);
+            // User's custom themes first, at the top.
+            var star = new Label("★");
+            star.style.fontSize = 12;
+            star.style.color = new Color(0.95f, 0.80f, 0.35f);
+            AddSection("Your", star, customs);
+            AddSection("Dark", MakeSkinIcon(false, 14), BySkin(presets, EditorThemeSkin.Dark));
+            AddSection("Light", MakeSkinIcon(true, 14), BySkin(presets, EditorThemeSkin.Light));
 
             UpdateSelectionHighlight();
         }
 
-        private void AddSection(string title, EditorThemeSkin skin,
-            List<(string id, string disp, EditorThemeData data, bool custom)> items)
+        private static List<(string id, string disp, EditorThemeData data, bool custom)> BySkin(
+            List<(string id, string disp, EditorThemeData data, bool custom)> items, EditorThemeSkin skin)
         {
             var group = new List<(string id, string disp, EditorThemeData data, bool custom)>();
             foreach (var it in items)
                 if (it.data.baseSkin == skin)
                     group.Add(it);
+            return group;
+        }
+
+        private void AddSection(string title, VisualElement icon,
+            List<(string id, string disp, EditorThemeData data, bool custom)> group)
+        {
             if (group.Count == 0)
                 return;
 
@@ -249,7 +262,8 @@ namespace EditorThemeKit
             header.style.marginTop = 6;
             header.style.marginBottom = 3;
             header.style.flexShrink = 0;
-            header.Add(MakeSkinIcon(skin == EditorThemeSkin.Light, 14));
+            if (icon != null)
+                header.Add(icon);
             var hl = new Label(" " + title + " themes");
             hl.style.unityFontStyleAndWeight = FontStyle.Bold;
             hl.style.opacity = 0.85f;
