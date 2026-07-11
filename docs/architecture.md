@@ -92,7 +92,7 @@ UserSettings/EditorThemeKit/ActiveTheme.json
 ## Assembly / layout
 
 ```
-Packages/com.editorthemekit.core/
+Packages/com.kobapps.editorthemekit/
   package.json
   Editor/
     EditorThemeKit.Editor.asmdef        (Editor platform only)

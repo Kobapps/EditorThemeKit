@@ -26,7 +26,7 @@ script recompilation**. Your active theme is stored **per-user** in the project'
 ```json
 {
   "dependencies": {
-    "com.editorthemekit.core": "https://github.com/Kobapps/EditorThemeKit.git"
+    "com.kobapps.editorthemekit": "https://github.com/Kobapps/EditorThemeKit.git"
   }
 }
 ```
