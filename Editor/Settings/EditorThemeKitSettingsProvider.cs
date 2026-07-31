@@ -189,6 +189,27 @@ namespace EditorThemeKit
             { text = "Revert to Unity Default" });
             root.Add(buttons);
 
+            // Debug: apply the rainbow diagnostic theme (each key a distinct hue).
+            var debugRow = new VisualElement();
+            debugRow.style.flexDirection = FlexDirection.Row;
+            debugRow.style.alignItems = Align.Center;
+            debugRow.style.marginTop = 10;
+            var debugBtn = new Button(ApplyDebugTheme) { text = "🐞 Apply Debug (Rainbow) Theme" };
+            debugBtn.tooltip =
+                "Applies a diagnostic theme where every color key is a distinct hue, so you can " +
+                "map each editor region to the key that drives it. Not saved — restored on restart.";
+            debugRow.Add(debugBtn);
+            root.Add(debugRow);
+
+            var debugLegend = new Label(
+                "Window=blue  Header=red  Toolbar=orange  Tab=purple  Tab(Sel)=magenta  " +
+                "Input=teal  Button=brown  Border=yellow  Accent=green  Scrollbar=pink");
+            debugLegend.style.whiteSpace = WhiteSpace.Normal;
+            debugLegend.style.opacity = 0.6f;
+            debugLegend.style.fontSize = 11;
+            debugLegend.style.marginTop = 3;
+            root.Add(debugLegend);
+
             var pathNote = new Label("Saved to: UserSettings/EditorThemeKit/  (ActiveTheme.json + Themes/)");
             pathNote.style.opacity = 0.6f;
             pathNote.style.marginTop = 8;
@@ -456,6 +477,49 @@ namespace EditorThemeKit
         private void ApplyNow()
         {
             EditorThemeApplier.Apply(_working.Clone(), persist: true);
+        }
+
+        // ---- debug -----------------------------------------------------------------
+
+        /// <summary>
+        /// A diagnostic theme where every semantic color key is a distinct, easily-named hue,
+        /// so each editor region can be visually mapped to the key that drives it (and any
+        /// region that stays default-gray is one no key currently reaches).
+        /// </summary>
+        internal static EditorThemeData BuildDebugTheme()
+        {
+            var t = new EditorThemeData { displayName = "Debug (Rainbow)", presetId = ThemePresets.CustomId, baseSkin = EditorThemeSkin.Dark };
+            // Per-tag mode: every individual token/selector gets its own unique color (see the
+            // generator), so regions that share a semantic key no longer collapse to one color.
+            t.debugUniqueTags = true;
+            t.Set(ThemeColorKey.WindowBackground,      new Color32(30, 30, 90, 255));    // deep blue
+            t.Set(ThemeColorKey.HeaderBackground,      new Color32(200, 40, 40, 255));   // red
+            t.Set(ThemeColorKey.ToolbarBackground,     new Color32(230, 130, 20, 255));  // orange
+            t.Set(ThemeColorKey.TabBackground,         new Color32(120, 40, 160, 255));  // purple
+            t.Set(ThemeColorKey.TabBackgroundSelected, new Color32(230, 40, 200, 255));  // magenta
+            t.Set(ThemeColorKey.InputBackground,       new Color32(20, 140, 140, 255));  // teal
+            t.Set(ThemeColorKey.ButtonBackground,      new Color32(120, 80, 40, 255));   // brown
+            t.Set(ThemeColorKey.Border,                new Color32(240, 220, 20, 255));  // yellow
+            t.Set(ThemeColorKey.Text,                  new Color32(245, 245, 245, 255)); // white
+            t.Set(ThemeColorKey.TextSelected,          new Color32(10, 10, 10, 255));    // black
+            t.Set(ThemeColorKey.Accent,                new Color32(40, 200, 80, 255));   // green
+            t.Set(ThemeColorKey.ScrollbarThumb,        new Color32(230, 120, 160, 255)); // pink
+            return t;
+        }
+
+        private void ApplyDebugTheme()
+        {
+            var keepImgui = _working.applyImguiPass;
+            _working = BuildDebugTheme();
+            _working.applyImguiPass = keepImgui;
+            RefreshColorFields();
+            _customize.value = true;
+            UpdateSelectionHighlight();
+            // Apply live but do NOT persist — it's a throwaway diagnostic, restored on restart.
+            EditorThemeApplier.Apply(_working.Clone(), persist: false);
+            // Print the color→tag legend so any observed region color can be traced to its tag.
+            if (!string.IsNullOrEmpty(UssThemeGenerator.LastDebugLegend))
+                Debug.Log("[Editor Theme Kit] Debug tag colors (color = tag):\n" + UssThemeGenerator.LastDebugLegend);
         }
     }
 }

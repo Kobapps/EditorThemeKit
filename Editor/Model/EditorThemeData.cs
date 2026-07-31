@@ -76,6 +76,14 @@ namespace EditorThemeKit
         /// </summary>
         public bool deepImgui = false;
 
+        /// <summary>
+        /// Diagnostic: when set, <see cref="UssThemeGenerator"/> ignores the semantic palette
+        /// and instead paints every individual editor token/selector its own unique color, so
+        /// each region can be mapped to the exact tag that drives it. Not persisted meaningfully.
+        /// </summary>
+        [NonSerialized]
+        public bool debugUniqueTags = false;
+
         [SerializeField]
         private List<Entry> entries = new List<Entry>();
 
@@ -131,6 +139,7 @@ namespace EditorThemeKit
                 baseSkin = baseSkin,
                 applyImguiPass = applyImguiPass,
                 deepImgui = deepImgui,
+                debugUniqueTags = debugUniqueTags,
                 entries = new List<Entry>(entries.Count),
             };
             for (int i = 0; i < entries.Count; i++)

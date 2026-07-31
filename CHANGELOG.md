@@ -3,6 +3,37 @@
 All notable changes to Editor Theme Kit are documented here.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.7.12] - 2026-07-03
+
+### Changed
+- **Dock tabs now read as three distinct shades.** Previously the unselected tabs shared the
+  Header color and blended into the strip they sit on. Now the **tab strip** (the window top bar
+  the tabs sit in) is the darkest — a recessed trough — with the **unselected** tabs a step
+  lighter and the **selected** tab lightest (raised, so the active tab pops and connects to the
+  content). The strip gets its own dedicated color, so inspector component headers keep their own
+  shade. A shared `DeriveTabShades` helper derives the triple from the Header color with
+  guaranteed separation and handles near-black / near-white themes. Applied to both the IMGUI
+  dock tabs and the `--unity-colors-tab-*` tokens so UITK and IMGUI tabs stay in sync.
+
+## [0.7.11] - 2026-07-03
+
+### Fixed
+- **Inspector top/bottom bars now take the darker "gutter" shade.** The top asset-header bar
+  and bottom AssetBundle bar are driven by the `--unity-colors-toolbar-background` design
+  token — not by any class selector. (Unity's IMGUI style names such as `IN BigTitle` contain
+  spaces, which are invalid USS class selectors, so class rules never reached these bars.)
+  That token now points at the gutter shade, so the bars read as a subtle recess. The actual
+  window toolbars (Scene/Console/Project) keep their color via the higher-specificity
+  `.Toolbar`/`.AppToolbar` class rules, so only the inspector bars change.
+- Removed dead, invalid space-containing class rules (`.IN BigTitle`, `.IN Title`, …) from the
+  generated USS.
+
+### Added
+- **Debug (Rainbow) button** in *Project Settings → Editor Theme Kit*: applies a diagnostic
+  theme where every individual token/selector is painted its own unique color (with a
+  color→tag legend logged to the Console), for mapping which tag drives which editor region.
+  Applied live but not persisted — restored on restart.
+
 ## [0.7.10] - 2026-07-03
 
 ### Changed

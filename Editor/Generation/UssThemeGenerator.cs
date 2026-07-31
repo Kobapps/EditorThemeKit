@@ -72,6 +72,9 @@ namespace EditorThemeKit
 
         public static string Generate(EditorThemeData theme)
         {
+            if (theme != null && theme.debugUniqueTags)
+                return GenerateDebugUnique();
+
             var sb = new StringBuilder(8192);
             sb.Append("/* ===== Editor Theme Kit — auto-generated. Do not edit. ===== */\n");
             sb.Append("/* Theme: ").Append(theme.displayName).Append(" */\n");
@@ -105,8 +108,10 @@ namespace EditorThemeKit
             var input = theme.Get(ThemeColorKey.InputBackground, window);
             var button = theme.Get(ThemeColorKey.ButtonBackground, window);
             var border = theme.Get(ThemeColorKey.Border, Darken(window, 0.1f));
-            var tab = theme.Get(ThemeColorKey.TabBackground, header);
-            var tabSel = theme.Get(ThemeColorKey.TabBackgroundSelected, window);
+            // Three distinct dock shades (shared derivation with ImguiThemePass): a darkest strip
+            // (the window top bar the tabs sit in), unselected tabs a step lighter, and the
+            // selected tab lightest. Here we emit the unselected/selected tab tokens.
+            var (_, tab, tabSel) = ImguiThemePass.DeriveTabShades(header);
             var scrollbar = theme.Get(ThemeColorKey.ScrollbarThumb, Lighten(window, 0.2f));
             var accent = theme.Get(ThemeColorKey.Accent, new Color32(0x3a, 0x72, 0xb0, 0xFF));
             var selText = theme.Get(ThemeColorKey.TextSelected, Color.white);
@@ -127,7 +132,12 @@ namespace EditorThemeKit
             Token(sb, "helpbox-background", Lighten(window, -rowShift));
             // App toolbar / inspector title bars (top/bottom bars of the inspector, etc.).
             Token(sb, "app_toolbar-background", header);
-            Token(sb, "toolbar-background", toolbar);
+            // The `toolbar-background` TOKEN drives the inspector's top asset-header bar and
+            // bottom AssetBundle bar (confirmed by probe). Point it at the darker gutter shade
+            // so those bars read as a subtle recess. The actual window toolbars (Scene/Console/
+            // Project) are painted by the higher-specificity `.Toolbar`/`.AppToolbar` class rules
+            // below (from the ToolbarBackground group), so they keep the real toolbar color.
+            Token(sb, "toolbar-background", gutter);
             Token(sb, "inspector_titlebar-background", gutter);
             Token(sb, "inspector_titlebar-background-hover", Lighten(gutter, dark ? 0.05f : -0.05f));
             Token(sb, "inspector_titlebar-border", border);
@@ -168,13 +178,92 @@ namespace EditorThemeKit
             Token(sb, "object_selector-highlight", hlBg);
             sb.Append("}\n");
 
-            // Inspector top/bottom bars (asset header + labels/footer) — darker gutter shade.
-            Block(sb, "IN Title", gutter);
-            Block(sb, "IN BigTitle", gutter);
-            Block(sb, "IN BigTitle Inner", gutter);
-            Block(sb, "IN BigTitle Post", gutter);
+            // NOTE: the inspector's top asset-header bar and bottom AssetBundle bar are driven
+            // by the `--unity-colors-toolbar-background` token (set to `gutter` above), NOT by
+            // any class selector — Unity's IMGUI style names contain spaces (e.g. "IN BigTitle"),
+            // which are invalid USS class selectors, so class rules never reached these bars.
 
             return sb.ToString();
+        }
+
+        // ---- debug: unique color per tag -------------------------------------------
+
+        // Every `--unity-colors-*` token the normal generator emits, in order. Kept as a flat
+        // list so the debug pass can give each its own color.
+        private static readonly string[] DebugTokens =
+        {
+            "window-background", "default-background", "preview-background",
+            "alternated_rows-background", "helpbox-background",
+            "app_toolbar-background", "toolbar-background",
+            "inspector_titlebar-background", "inspector_titlebar-background-hover",
+            "inspector_titlebar-border", "inspector_titlebar-border_accent",
+            "input_field-background", "object_field-background", "slider_groove-background",
+            "button-background", "button-background-hover", "button-background-pressed",
+            "dropdown-background",
+            "tab-background", "tab-background-checked", "tab-background-selected",
+            "default-border", "window-border", "toolbar-border", "input_field-border",
+            "default-text", "label-text", "window-text", "button-text",
+            "scrollbar_thumb-background", "scrollbar_groove-background",
+            "highlight-background", "highlight-background-hover", "highlight-background-inactive",
+            "highlight", "selection-background", "highlight-text", "highlight-text-inactive",
+            "object_selector-highlight",
+        };
+
+        // Extra IMGUI-class blocks the normal generator emits for the inspector bars.
+        private static readonly string[] DebugInspectorSelectors =
+        {
+            "IN Title", "IN BigTitle", "IN BigTitle Inner", "IN BigTitle Post",
+            ".unity-inspector-header-info", ".unity-inspector-footer-info",
+            ".unity-inspector-debug-info",
+        };
+
+        /// <summary>The color→tag mapping from the last debug generation (one line per tag).</summary>
+        public static string LastDebugLegend { get; private set; }
+
+        // Emits USS that paints every token and selector its own unique color, and records a
+        // legend so any observed pixel color can be traced back to the exact tag.
+        private static string GenerateDebugUnique()
+        {
+            var sb = new StringBuilder(16384);
+            var legend = new StringBuilder(4096);
+            int idx = 0;
+            sb.Append("/* ===== Editor Theme Kit — DEBUG: unique color per tag ===== */\n");
+
+            void SelBlock(string sel)
+            {
+                var c = DebugColor(idx++);
+                Block(sb, sel, c);
+                legend.Append(Selector(sel)).Append(" = ").Append(Rgba(c)).Append('\n');
+            }
+
+            foreach (var (_, selectors) in Groups)
+                foreach (var sel in selectors)
+                    SelBlock(sel);
+            foreach (var sel in DebugInspectorSelectors)
+                SelBlock(sel);
+
+            sb.Append("\n:root {\n");
+            foreach (var name in DebugTokens)
+            {
+                var c = DebugColor(idx++);
+                Token(sb, name, c);
+                legend.Append("--unity-colors-").Append(name).Append(" = ").Append(Rgba(c)).Append('\n');
+            }
+            sb.Append("}\n");
+
+            LastDebugLegend = legend.ToString();
+            return sb.ToString();
+        }
+
+        // A distinct color per index: golden-angle hue rotation so consecutive tags are far
+        // apart on the wheel, with cycling saturation/value for extra separation. Each index
+        // yields a unique, reproducible RGB that the legend maps back to a tag name.
+        private static Color DebugColor(int i)
+        {
+            float hue = (i * 0.61803398875f) % 1f;
+            float sat = 0.60f + 0.35f * ((i % 3) / 2f); // 0.60 / 0.775 / 0.95
+            float val = 0.72f + 0.26f * (i % 2);        // 0.72 / 0.98
+            return Color.HSVToRGB(hue, sat, val);
         }
 
         private static float Lum(Color c) => 0.2126f * c.r + 0.7152f * c.g + 0.0722f * c.b;

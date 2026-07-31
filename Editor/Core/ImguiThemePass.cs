@@ -34,6 +34,7 @@ namespace EditorThemeKit
         private static Color _buttonColor = new Color(0.35f, 0.35f, 0.35f, 1f);
         private static Color _dropdownColor = new Color(0.35f, 0.35f, 0.35f, 1f);
         private static Color _headerColor = new Color(0.28f, 0.28f, 0.28f, 1f);
+        private static Color _tabStripColor = new Color(0.20f, 0.20f, 0.20f, 1f);
         private static Color _tabColor = new Color(0.24f, 0.24f, 0.24f, 1f);
         private static Color _tabSelColor = new Color(0.30f, 0.30f, 0.30f, 1f);
         private static Color _borderColor = new Color(0.15f, 0.15f, 0.15f, 1f);
@@ -99,6 +100,18 @@ namespace EditorThemeKit
             _selTextColor = theme.Get(ThemeColorKey.TextSelected, Color.white);
             _selColor = ReadableHighlight(accent, _selTextColor); // match the tree/list selection
             _windowColor = theme.Get(ThemeColorKey.WindowBackground, new Color(0.22f, 0.22f, 0.22f, 1f));
+
+            // Three distinct dock shades: the tab strip (window top bar) is the darkest trough,
+            // unselected tabs a step lighter, the selected tab lightest (raised). Derived from
+            // the Header color so it holds on every theme. The strip gets its own color and does
+            // NOT reuse HeaderBackground, so inspector component headers stay their own shade.
+            {
+                var (strip, unsel, sel) = DeriveTabShades(_headerColor);
+                _tabStripColor = strip;
+                _tabColor = unsel;
+                _tabSelColor = sel;
+            }
+
             _hasTheme = true;
             _dockApplied = false; // re-apply dock styles for the new colors
             SafeRepaint();
@@ -168,10 +181,15 @@ namespace EditorThemeKit
             if (dragTab == null)
                 return false; // DockArea styles not built yet.
 
-            HeaderStyle(CachedStyle("UnityEditor.DockArea", "background"));
-            HeaderStyle(CachedStyle("UnityEditor.DockArea", "dockTitleBarStyle"));
-            HeaderStyle(CachedStyle("UnityEditor.HostView", "background"));
-            HeaderStyle(CachedStyle("UnityEditor.HostView", "tabWindowBackground"));
+            // The tab strip / dock header background — the darkest of the three dock shades.
+            // NOTE: only the DockArea tab-strip styles get the dark strip color. The HostView
+            // "background"/"tabWindowBackground" styles back the window *bodies*, so they must
+            // stay at the content (window) color — routing them through the dark strip made the
+            // window/inspector bodies too dark.
+            HeaderStyle(CachedStyle("UnityEditor.DockArea", "background"), _tabStripColor);
+            HeaderStyle(CachedStyle("UnityEditor.DockArea", "dockTitleBarStyle"), _tabStripColor);
+            HeaderStyle(CachedStyle("UnityEditor.HostView", "background"), _windowColor);
+            HeaderStyle(CachedStyle("UnityEditor.HostView", "tabWindowBackground"), _windowColor);
 
             DockTab(dragTab);
             DockTab(CachedStyle("UnityEditor.DockArea", "dragTabFirst"));
@@ -253,13 +271,13 @@ namespace EditorThemeKit
             ReplaceState(style.onNormal, _borderColor);
         }
 
-        private static void HeaderStyle(GUIStyle style)
+        private static void HeaderStyle(GUIStyle style, Color color)
         {
             if (style == null) return;
-            ReplaceState(style.normal, _headerColor);
-            ReplaceState(style.onNormal, _headerColor);
-            ReplaceState(style.focused, _headerColor);
-            ReplaceState(style.active, _headerColor);
+            ReplaceState(style.normal, color);
+            ReplaceState(style.onNormal, color);
+            ReplaceState(style.focused, color);
+            ReplaceState(style.active, color);
         }
 
         // Unselected tab states -> _tabColor; selected (on*) states -> _tabSelColor.
@@ -533,6 +551,25 @@ namespace EditorThemeKit
                 catch { /* best-effort */ }
             }
             ColorFieldSnaps.Clear();
+        }
+
+        private static float Lum(Color c) => 0.2126f * c.r + 0.7152f * c.g + 0.0722f * c.b;
+
+        // Derives three distinct dock shades from the Header color. Convention: the tab STRIP
+        // (the window top bar the tabs sit in) is the DARKEST — a recessed trough — with the
+        // unselected tabs a step lighter and the selected tab the lightest (raised, so the active
+        // tab pops and connects to the content). Handles near-black / near-white themes where the
+        // dark direction has no room. Shared with UssThemeGenerator (kept in sync).
+        internal static (Color strip, Color unselected, Color selected) DeriveTabShades(Color header)
+        {
+            float hl = Lum(header);
+            if (hl < 0.10f)        // near-black: no darker room — keep strip, stack tabs lighter
+                return (header, Lighten(header, 0.07f), Lighten(header, 0.17f));
+            if (hl > 0.90f)        // near-white: pull the strip down hardest
+                return (Darken(header, 0.16f), Darken(header, 0.04f), Lighten(header, 0.03f));
+            // Normal: a dark strip trough, both tabs distinctly lighter, and a wide gap between
+            // the unselected and selected tabs so the active tab clearly stands out.
+            return (Darken(header, 0.10f), Lighten(header, 0.02f), Lighten(header, 0.13f));
         }
 
         private static Color Lighten(Color c, float a) =>

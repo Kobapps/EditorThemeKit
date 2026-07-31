@@ -125,24 +125,16 @@ namespace EditorThemeKit
         // reimports. Unity re-merges editor extension stylesheets on import — no domain reload.
         private static void WriteExtensionUss(string uss)
         {
-            bool folderIsNew = !Directory.Exists(ToAbsolute(ExtFolder));
             Directory.CreateDirectory(ToAbsolute(ExtFolder));
             File.WriteAllText(ToAbsolute(DarkUss), uss);
             File.WriteAllText(ToAbsolute(LightUss), uss);
             WriteFolderReadme(ToAbsolute("Assets/EditorThemeKit.Generated"));
 
-            if (folderIsNew)
-            {
-                // First run: the folder isn't tracked yet — a full refresh registers it.
-                AssetDatabase.Refresh();
-            }
-            else
-            {
-                // Reimport only the two files so Unity re-merges the extension stylesheets
-                // without a full project refresh (lighter, less visible reload on each switch).
-                AssetDatabase.ImportAsset(DarkUss, ImportAssetOptions.ForceUpdate);
-                AssetDatabase.ImportAsset(LightUss, ImportAssetOptions.ForceUpdate);
-            }
+            // A full refresh reliably re-merges Unity's editor extension stylesheets (a
+            // targeted ImportAsset does not always re-merge them live). No domain reload.
+            AssetDatabase.ImportAsset(DarkUss, ImportAssetOptions.ForceUpdate);
+            AssetDatabase.ImportAsset(LightUss, ImportAssetOptions.ForceUpdate);
+            AssetDatabase.Refresh();
 
             // Offer (once per project) to git-ignore the generated folder.
             GitignoreHelper.MaybePromptOnce();
